@@ -1,0 +1,83 @@
+<style>
+    html {
+        font-family: monospace;
+        font-size: 16px;
+        background-color: #333;
+    }
+
+    table {
+        border-spacing: 0;
+        border-collapse: collapse;
+        border: 1px solid #ddd;
+        width: 100%;
+        max-width: 100%;
+        background-color: white;
+    }
+
+    .app-table>tbody>tr>td, .app-table>tbody>tr>th, .app-table>tfoot>tr>td, .app-table>tfoot>tr>th, .app-table>thead>tr>td, .app-table>thead>tr>th {
+        padding: 8px;
+        line-height: 1.42857143;
+        vertical-align: top;
+        text-align: left;
+        
+        border: 1px solid #ddd;
+    }
+
+    .app-table tr.disabled {
+        opacity: 0.3;
+    }
+
+    .app-table .disabled-col {
+        text-align: center;
+    }
+
+    .app-table .args-col,
+    .app-table .statuses-col {
+        font-size: 0.8em;
+        width: 35%;
+    }
+</style>
+
+<table class="app-table">
+    <thead>
+        <th>Actions</th>
+        <th>Disabled</th>
+        <th>App</th>
+        <th>Pid</th>
+        <th>Exe</th>
+        <th>Arguments</th>
+        <th>Status</th>
+    </thead>
+    {{range .}}
+    <tr class="{{if .Disabled}}disabled{{end}}">
+        <td>
+            <div> <a href="?action=kill&appid={{.TmpId}}">Kill</a> </div>
+            <div> <a href="?action=restart&appid={{.TmpId}}">Restart</a> </div>
+            <div> <a href="?action=start&appid={{.TmpId}}">Start</a> </div>
+        </td>
+        <td class="disabled-col">
+            {{if .Disabled}}
+                <div>YES</div>
+                <div> <a href="?action=enable&appid={{.TmpId}}">Enable</a> </div>
+            {{else}}
+                <div> <a href="?action=disable&appid={{.TmpId}}">Disable</a> </div>
+            {{end}}
+        </td>
+        <td>{{.Name}}</td>
+        <td>{{.CurrentProcessId}}</td>
+        <td>{{.Exe}}</td>
+        <td class="args-col">
+            {{range .Args}}
+                <div>{{.}}</div>
+            {{end}}
+        </td>
+        <td class="statuses-col">
+            <div> <a href="?action=clear_status_progress&appid={{.TmpId}}">Clear</a> </div>
+            {{range .StatusProgress}}
+                <div>{{.}}</div>
+            {{end}}            
+            <strong>{{.CurrentStatus}}</strong>
+        </td>
+    </tr>
+    {{end}}
+</table>
