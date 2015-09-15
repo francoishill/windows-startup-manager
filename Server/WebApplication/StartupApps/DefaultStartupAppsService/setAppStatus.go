@@ -10,6 +10,8 @@ import (
 var globalAppStatusLock *sync.RWMutex
 
 func (s *service) setAppStatus(app *App, status string) {
+	s.logger.Info("Setting status for app '%s': %s", app.Name, status)
+
 	globalAppStatusLock.Lock()
 	defer globalAppStatusLock.Unlock()
 

@@ -51,7 +51,7 @@ func (r *RouterContext) loadRepos(useMock bool) {
 		logger = DefaultLogger.New(logFileName, "", r.Settings.IsDevMode())
 	}
 
-	startupAppsService := DefaultStartupAppsService.NewDefaultStartupAppsService(r.Settings.CurrentStartupAppsJsonFile())
+	startupAppsService := DefaultStartupAppsService.NewDefaultStartupAppsService(logger, r.Settings.CurrentStartupAppsJsonFile())
 	startupAppsService.GetCurrentAppList()
 
 	errorService := DefaultErrorService.New()

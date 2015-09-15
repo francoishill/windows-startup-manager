@@ -5,13 +5,20 @@
         background-color: #333;
     }
 
+    .container {
+        background-color: white;
+    }
+
     table {
         border-spacing: 0;
         border-collapse: collapse;
         border: 1px solid #ddd;
         width: 100%;
         max-width: 100%;
-        background-color: white;
+    }
+
+    .app-table.is-paused {
+        opacity: 0.5;
     }
 
     .app-table>tbody>tr>td, .app-table>tbody>tr>th, .app-table>tfoot>tr>td, .app-table>tfoot>tr>th, .app-table>thead>tr>td, .app-table>thead>tr>th {
@@ -36,48 +43,73 @@
         font-size: 0.8em;
         width: 35%;
     }
+
+    a {
+        appearance: button;
+        -moz-appearance: button;
+        -webkit-appearance: button;
+        text-decoration: none; 
+        font: menu;
+        color: ButtonText;
+        display: inline-block; 
+        padding: 2px 8px;
+        margin: 2px;
+    }
 </style>
 
-<table class="app-table">
-    <thead>
-        <th>Actions</th>
-        <th>Disabled</th>
-        <th>App</th>
-        <th>Pid</th>
-        <th>Exe</th>
-        <th>Arguments</th>
-        <th>Status</th>
-    </thead>
-    {{range .}}
-    <tr class="{{if .Disabled}}disabled{{end}}">
-        <td>
-            <div> <a href="?action=kill&appid={{.TmpId}}">Kill</a> </div>
-            <div> <a href="?action=restart&appid={{.TmpId}}">Restart</a> </div>
-            <div> <a href="?action=start&appid={{.TmpId}}">Start</a> </div>
-        </td>
-        <td class="disabled-col">
-            {{if .Disabled}}
-                <div>YES</div>
-                <div> <a href="?action=enable&appid={{.TmpId}}">Enable</a> </div>
-            {{else}}
-                <div> <a href="?action=disable&appid={{.TmpId}}">Disable</a> </div>
-            {{end}}
-        </td>
-        <td>{{.Name}}</td>
-        <td>{{.CurrentProcessId}}</td>
-        <td>{{.Exe}}</td>
-        <td class="args-col">
-            {{range .Args}}
-                <div>{{.}}</div>
-            {{end}}
-        </td>
-        <td class="statuses-col">
-            <div> <a href="?action=clear_status_progress&appid={{.TmpId}}">Clear</a> </div>
-            {{range .StatusProgress}}
-                <div>{{.}}</div>
-            {{end}}            
-            <strong>{{.CurrentStatus}}</strong>
-        </td>
-    </tr>
+<div class="container">
+
+    <div> <a href="?global_action=reload_apps_from_config">Reload From Config</a> </div>
+
+    {{if .IsPaused}}
+        <div> <a href="?global_action=resume_starting">Resume Starting</a> </div>
+
+        <h2 style="color:red">Paused Currently</h2>
+    {{else}}
+        <div> <a href="?global_action=pause_starting">Pause Starting</a> </div>
     {{end}}
-</table>
+
+    <table class="app-table {{if .IsPaused}}is-paused{{end}}">
+        <thead>
+            <th>Actions</th>
+            <th>Disabled</th>
+            <th>App</th>
+            <th>Pid</th>
+            <th>Exe</th>
+            <th>Arguments</th>
+            <th>Status</th>
+        </thead>
+        {{range .CurrentApps}}
+        <tr class="{{if .Disabled}}disabled{{end}}">
+            <td>
+                <div> <a href="?app_action=kill&appid={{.TmpId}}">Kill</a> </div>
+                <div> <a href="?app_action=restart&appid={{.TmpId}}">Restart</a> </div>
+                <div> <a href="?app_action=start&appid={{.TmpId}}">Start</a> </div>
+            </td>
+            <td class="disabled-col">
+                {{if .Disabled}}
+                    <div>YES</div>
+                    <div> <a href="?app_action=enable&appid={{.TmpId}}">Enable</a> </div>
+                {{else}}
+                    <div> <a href="?app_action=disable&appid={{.TmpId}}">Disable</a> </div>
+                {{end}}
+            </td>
+            <td>{{.Name}}</td>
+            <td>{{.CurrentProcessId}}</td>
+            <td>{{.Exe}}</td>
+            <td class="args-col">
+                {{range .Args}}
+                    <div>{{.}}</div>
+                {{end}}
+            </td>
+            <td class="statuses-col">
+                <div> <a href="?app_action=clear_status_progress&appid={{.TmpId}}">Clear</a> </div>
+                {{range .StatusProgress}}
+                    <div>{{.}}</div>
+                {{end}}            
+                <strong>{{.CurrentStatus}}</strong>
+            </td>
+        </tr>
+        {{end}}
+    </table>
+</div>

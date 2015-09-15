@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	. "github.com/francoishill/windows-startup-manager/Domain/Entity/StartupApps"
 	. "github.com/francoishill/windows-startup-manager/Server/WebApplication/Context/RouterContext"
 )
 
@@ -19,12 +20,29 @@ func (rt *route) GetPathPart() string {
 }
 
 func (rt *route) Get(w http.ResponseWriter, r *http.Request, ctx *RouterContext) {
-	action := r.URL.Query().Get("action")
-	if action != "" {
+	globalAction := r.URL.Query().Get("global_action")
+	if globalAction != "" {
+		switch strings.ToUpper(globalAction) {
+		case "RELOAD_APPS_FROM_CONFIG":
+			ctx.StartupAppsService.ReloadAppsFromFile()
+			break
+		case "PAUSE_STARTING":
+			ctx.StartupAppsService.PauseStarting()
+			break
+		case "RESUME_STARTING":
+			ctx.StartupAppsService.ResumeStarting()
+			break
+		default:
+			panic("Unsupported global action: " + globalAction)
+		}
+	}
+
+	appAction := r.URL.Query().Get("app_action")
+	if appAction != "" {
 		appIdInt64 := ctx.HttpHelperService.GetRequiredUrlQueryValue_Int64(r, "appid")
 		appId := int(appIdInt64)
 
-		switch strings.ToUpper(action) {
+		switch strings.ToUpper(appAction) {
 		case "KILL":
 			ctx.StartupAppsService.KillApp(appId)
 			break
@@ -45,7 +63,7 @@ func (rt *route) Get(w http.ResponseWriter, r *http.Request, ctx *RouterContext)
 			ctx.StartupAppsService.ClearStatusProgress(appId)
 			break
 		default:
-			panic("Unsupported action: " + action)
+			panic("Unsupported app action: " + appAction)
 		}
 
 		fmt.Println(r.URL.Path)
@@ -53,6 +71,12 @@ func (rt *route) Get(w http.ResponseWriter, r *http.Request, ctx *RouterContext)
 		return
 	}
 
-	currentApps := ctx.StartupAppsService.GetCurrentAppList()
-	ctx.HttpHelperService.RenderHtml(w, "Dashboard", currentApps)
+	data := &struct {
+		IsPaused    bool
+		CurrentApps []*App
+	}{
+		ctx.StartupAppsService.IsPaused(),
+		ctx.StartupAppsService.GetCurrentAppList(),
+	}
+	ctx.HttpHelperService.RenderHtml(w, "Dashboard", data)
 }

@@ -3,3 +3,4 @@
 *.sublime-workspace
 /Server/WebApplication/config/current_startup_apps.json
 /Server/WebApplication/config/server.gcfg
+/Server/WebApplication/config/backup__current_startup_apps.json

@@ -2,15 +2,26 @@ package DefaultStartupAppsService
 
 import (
 	. "github.com/francoishill/windows-startup-manager/Domain/Entity/StartupApps"
+	. "github.com/francoishill/windows-startup-manager/Server/WebApplication/Logger"
 	"sync"
 	"time"
 )
 
 type service struct {
+	logger       Logger
 	jsonFilePath string
 	lock         *sync.RWMutex
 	currentApps  []*App
 	wg           *sync.WaitGroup
+
+	isPaused     bool
+	isPausedLock *sync.RWMutex
+}
+
+func (s *service) setPaused(paused bool) {
+	s.isPausedLock.Lock()
+	defer s.isPausedLock.Unlock()
+	s.isPaused = paused
 }
 
 func (s *service) startAllApps() {
@@ -18,8 +29,10 @@ func (s *service) startAllApps() {
 	s.wg.Add(len(s.currentApps))
 
 	for _, app := range s.currentApps {
-		go s.startAndWaitForApp(app, true)
+		for s.isPaused {
+		}
 
+		go s.startAndWaitForApp(app, true)
 		if !app.Disabled {
 			time.Sleep(3 * time.Second)
 		}
@@ -36,6 +49,22 @@ func (s *service) GetCurrentAppList() []*App {
 		go s.startAllApps()
 	}
 	return s.currentApps
+}
+
+func (s *service) ReloadAppsFromFile() {
+	s.currentApps = nil
+	s.GetCurrentAppList()
+}
+
+func (s *service) IsPaused() bool {
+	return s.isPaused
+}
+
+func (s *service) PauseStarting() {
+	s.setPaused(true)
+}
+func (s *service) ResumeStarting() {
+	s.setPaused(false)
 }
 
 func (s *service) KillApp(appId int) {
@@ -75,11 +104,14 @@ func (s *service) ClearStatusProgress(appId int) {
 	app.StatusProgress = []string{}
 }
 
-func NewDefaultStartupAppsService(jsonFilePath string) StartupAppsService {
+func NewDefaultStartupAppsService(logger Logger, jsonFilePath string) StartupAppsService {
 	return &service{
+		logger,
 		jsonFilePath,
 		&sync.RWMutex{},
 		nil,
 		nil,
+		false,
+		&sync.RWMutex{},
 	}
 }
